@@ -145,12 +145,13 @@ velociraptor_cli/
 │   └── cli/             click command tree (thin layer over api/ + ops/)
 ├── tests/               pytest + respx (341 tests)
 ├── scripts/             gen_cli_docs.py, check_spec_drift.py, check_no_keys.py
-└── docs/                see Documentation below
+└── docs/                guides — see docs/README.md and Documentation below
 ```
 
 ## Documentation
 
-Everything detailed lives under [`docs/`](docs/):
+Everything detailed lives under [`docs/`](docs/) — start at the
+[docs index](docs/README.md). Highlights:
 
 - [docs/installation.md](docs/installation.md) — pipx, `pip --user`
   fallback, orchestrator tag-pinning, dev setup
@@ -165,6 +166,12 @@ Everything detailed lives under [`docs/`](docs/):
 - [docs/soar-playbooks.md](docs/soar-playbooks.md) — InsightConnect recipes
   for triage-on-alert, IOC sweep, contain-on-detection, and enrichment,
   with the JSON each step returns and exit-code branching
+- [docs/architecture.md](docs/architecture.md) — the system design: layering,
+  the request path, the secret/redaction model, error/exit-code model,
+  evidence + audit chain-of-custody, and how the codebase was built and reviewed
+- [docs/development.md](docs/development.md) — contributor guide: dev setup,
+  tests, the pre-commit hooks (the CI), generated docs, spec-drift checking,
+  and adding a new endpoint
 
 Project-level documents at the repo root:
 

@@ -2,8 +2,26 @@
 
 What is left to do on `velociraptor_cli`. Phases 0–3 of [PLAN.md](PLAN.md)
 are built and committed on `main` (all 26 REST operations have `vr` commands;
-six `vr ops` composites; 341 tests; pre-commit hooks installed). The items
-below are the remaining work, grouped by what blocks them.
+six `vr ops` composites; 341 tests; pre-commit hooks installed; full docs in
+[docs/](docs/), including [architecture](docs/architecture.md) and
+[development](docs/development.md) guides). The items below are the remaining
+work, grouped by what blocks them.
+
+---
+
+## Near-term (do next, no tenant required)
+
+- [ ] **Tag `v0.1.0`.** The install docs and SOAR orchestrator pinning
+      already reference `@v0.1.0`, but no git tag exists yet. Cut it from the
+      current `main` so `pipx install …@v0.1.0` works and SOAR can pin it.
+- [ ] **Assign the spec-drift owner** (PLAN §6 requires a *named* person
+      before Phase 1 exit — still TBD) and put `scripts/check_spec_drift.py`
+      on a monthly schedule.
+- [ ] **Pin & hash dependencies** — `pip-compile --generate-hashes` →
+      `requirements.txt`, and wire `pip-audit` into a pre-push hook
+      (PLAN §5.5).
+- [ ] **Turn on GitHub secret scanning / push protection** on the remote as
+      the second net behind the local hooks (PLAN §9.4).
 
 ---
 
@@ -95,17 +113,12 @@ the tenant and diff the `parameters:` block against the assumptions above.
 
 ## Engineering follow-ups (nice-to-have, no tenant required)
 
+(See also the Near-term section above for the spec-drift owner, dependency
+pinning, and GitHub secret scanning.)
+
 - [ ] **CI when available** — pre-commit-only means an unhooked clone can
       still push secrets or broken code. Even one self-hosted runner running
       the same hooks server-side closes that gap. (PLAN §9.10)
-- [ ] **GitHub secret scanning / push protection** on the remote as a second
-      net behind the local hooks. (PLAN §9.4)
-- [ ] **Pinned, hashed dependencies** — generate `requirements.txt` with
-      `pip-compile --generate-hashes` and wire `pip-audit` into a pre-push
-      hook. (PLAN §5.5)
-- [ ] **Spec-drift watch** — run `scripts/check_spec_drift.py` monthly and
-      before each release; assign a **named owner** (PLAN §6 requires this
-      before Phase 1 exit — still TBD).
 - [ ] **Scheduled sweeps (later)** — a cron-driven
       `vr ops ioc-hunt --from-feed` consuming threat-intel exports would
       close the loop from intel to fleet sweep with no human in the path.

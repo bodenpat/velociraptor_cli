@@ -69,10 +69,12 @@ hook rejects anything else as a potential key.)
 
 When set, every `vr ops` command appends one JSON line per invocation to
 this path: timestamp (`ts`), operator identity (`user`, `host`), the
-command, its argv (defensively scrubbed of anything resembling the key —
-which cannot be an argument in the first place), the process ID, and any
-hunt/flow IDs created. Parent directories are created if needed; the file
-is only ever appended to.
+command, its argv (defensively scrubbed of the key — which cannot be an
+argument in the first place), the process ID, and any hunt/flow IDs created.
+The argv scrub reads the live secret registry, so it strips the key
+**regardless of source** — whether it came from `R7_VR_API_KEY` or
+`R7_VR_API_KEY_FILE`. Parent directories are created if needed; the file is
+only ever appended to.
 
 This is **in addition to** the `audit.jsonl` written inside each evidence
 directory by the collection verbs (`vr ops triage`, `vr ops live`).

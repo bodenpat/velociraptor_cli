@@ -96,3 +96,8 @@ python3 -m pytest
 
 Every new runtime dependency requires a written justification in the PR
 (PLAN.md §3 minimal-dependency policy).
+
+For the full contributor workflow — test fixtures, the pre-commit hooks,
+the generated CLI reference, spec-drift checking, and how to add a new
+endpoint — see [development.md](development.md). For the system design, see
+[architecture.md](architecture.md).
