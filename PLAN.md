@@ -2,7 +2,7 @@
 
 **Project:** `velociraptor_cli` — a Python library + CLI for the Rapid7-hosted Velociraptor REST API, built for Rapid7 InsightConnect (SOAR) evidence-collection automation and interactive analyst use.
 
-**Status:** Draft v1 (2026-06-10). Decisions below were confirmed in the project kickoff interview.
+**Status:** v1.1 (2026-06-10). Decisions below were confirmed in the project kickoff interview. Revised same day after an /office-hours review: phases resequenced vertical-slice-first; full API coverage remains in scope — **only sequencing changed**, not scope. Design doc: `~/.gstack/projects/bodenpat-velociraptor_cli/pboden-main-design-20260610-173112.md`.
 
 ---
 
@@ -209,7 +209,7 @@ Defense-in-depth measures, all implemented in Phase 1 and tested:
 ## 6. Documentation strategy (cannot go stale)
 
 - `docs/cli-reference.md` is **generated** by `scripts/gen_cli_docs.py` from the live click command tree. A pre-commit hook regenerates it and **fails the commit if the file changed**, so the reference is always in sync with the code on every commit.
-- `docs/api-coverage.md` maps every spec operation to its `vr` command; `scripts/check_spec_drift.py` re-downloads the official OpenAPI YAML, diffs it against `spec/`, and reports new/changed endpoints (run monthly and before each release — this is how we notice Rapid7 shipping new API surface).
+- `docs/api-coverage.md` maps every spec operation to its `vr` command; `scripts/check_spec_drift.py` re-downloads the official OpenAPI YAML, diffs it against `spec/`, and reports new/changed endpoints (run monthly and before each release — this is how we notice Rapid7 shipping new API surface). **Owner: TBD — a named person must be assigned before Phase 1 exit; "the team" does not count.**
 - `docs/soar-playbooks.md` holds copy-pasteable InsightConnect recipes: triage-on-alert, IOC sweep from a threat-intel feed, contain-on-detection, and the JSON each step returns.
 - `CHANGELOG.md` (Keep a Changelog + SemVer) is updated in the same PR as any behavior change; releases are git tags.
 - `README.md` covers install (pipx from the internal git remote), env-var setup for both SOAR and WSL, and a 5-minute quickstart.
@@ -227,20 +227,20 @@ Defense-in-depth measures, all implemented in Phase 1 and tested:
 
 ## 8. Phases
 
-**Phase 0 — Security baseline & scaffolding** (do first, before any code)
-Repo layout, `pyproject.toml`, pre-commit with gitleaks/detect-secrets/ruff, `.gitignore`, `SECURITY.md`, vendored spec. *Acceptance: committing a fake API key is blocked by hooks.*
+**Phase 0 — Security baseline, scaffolding & orchestrator spike** (do first, before any code)
+Repo layout, `pyproject.toml`, pre-commit with gitleaks/detect-secrets/ruff, `.gitignore`, `SECURITY.md`, vendored spec. **File the Rapid7 file-download ticket now** (§2 gap — longest lead-time item; owner: whoever holds the Rapid7 account relationship). **Orchestrator spike** (half a day, zero code): prove the InsightConnect orchestrator can execute a local CLI command with an env-injected secret and capture its JSON output, and in the same visit measure the orchestrator's maximum step duration. The exec capability is the load-bearing assumption of the CLI-first SOAR strategy — if it fails, only the SOAR delivery path pivots to the native plugin (Phase 5); the CLI remains fully valuable for WSL analysts. *Acceptance: committing a fake API key is blocked by hooks; spike results documented.*
 
 **Phase 1 — Core library**
-`config.py`, `Secret` wrapper, `transport.py` (auth, timeouts, retry w/ exponential backoff + jitter on 429/5xx, redaction hooks), `errors.py`, `pagination.py`, `vr status`. Open the file-download question with Rapid7 (§2 gap). *Acceptance: `vr status` succeeds against the tenant; redaction tests pass.*
+`config.py`, `Secret` wrapper, `transport.py` (auth, timeouts, retry w/ exponential backoff + jitter on 429/5xx, redaction hooks, `--dry-run` plumbing), `errors.py`, `pagination.py`, `vr status`. *Acceptance: `vr status` succeeds against the tenant; redaction tests pass.*
 
-**Phase 2 — Full API coverage**
-All five `api/` modules + the complete primitive command set (§4.1), each with tests and generated docs. *Acceptance: 26/26 spec operations mapped in `docs/api-coverage.md`.*
+**Phase 2 — Triage vertical slice**
+One verb end-to-end: `vr ops triage` plus exactly the 7 endpoints it needs (clients list, client get, flow create, flow get, flow list-results, flow results-per-artifact, flow logs — the per-source results variant stays in the Phase 3 backfill), `--wait` polling, evidence directory + SHA-256 manifest, audit JSONL, KapeFiles preset, `--dry-run` on flow create. Long-collection fallback contract (specified now, **built only if the Phase 0 spike showed step-duration caps below worst-case collection time**): `vr ops triage --start` returns a resume token encoding client ID, flow ID, and output directory; `vr ops triage --check <token>` polls, and the terminal `--check` writes the evidence directory and manifest exactly as `--wait` would. *Acceptance: one InsightConnect workflow step runs `vr ops triage <host> --wait` against a lab host enrolled in the production tenant and produces the evidence directory with exit code 0 — no GUI involvement.*
 
-**Phase 3 — SOAR ops layer**
-`vr ops` composites (§4.2), `--wait` polling, evidence manifests, audit logging, curated artifact presets. *Acceptance: end-to-end triage of a lab host from one InsightConnect step; evidence dir + manifest produced.*
+**Phase 3 — Remaining verbs + full API coverage**
+The other `vr ops` composites (`live`, `ioc-hunt`, `contain`/`release`, `enrich`), backfilling primitives and endpoints verb-by-verb until 26/26; tail endpoints serving no current persona directly (artifact CRUD, client delete) land last. Verify hunt `desiredState` lifecycle semantics empirically here. **Conditional scope** (only if the Rapid7 ticket resolves "no file download, and not on the roadmap"): `vr evidence ingest <file>` — copy a manually-downloaded file into the evidence directory, add its SHA-256 to the manifest, append an audit JSONL entry recording operator and source. *Acceptance: 26/26 spec operations mapped in `docs/api-coverage.md`; `--dry-run` present on every mutating command.*
 
 **Phase 4 — SOAR rollout & playbooks**
-InsightConnect workflows for the four v1 use cases using the CLI on the orchestrator host; `docs/soar-playbooks.md`; analyst WSL install guide; tabletop a real investigation with the tooling. *Acceptance: triage-on-alert workflow runs in production.*
+InsightConnect workflows for the four v1 use cases using the CLI on the orchestrator host; `docs/soar-playbooks.md`; analyst WSL install guide; tabletop a real investigation with the tooling. *Acceptance: triage-on-alert workflow runs in production; post-rollout review scheduled with a named owner.* **Post-rollout review (rows-only evidence checkpoint):** for the first 3 production incidents using `vr ops triage` (or 60 days post-rollout, whichever comes first), the incident postmortem checklist gains one item — "Did the analyst open the hosted GUI to retrieve file content for this incident? (yes/no, what for)". Decision rule: any GUI fallback → rows-only evidence is falsified, escalate the Rapid7 file-download ticket to blocking for declaring triage fully automated and retiring the GUI-hybrid step; fewer than 3 incidents with zero fallback at day 60 → extend the window once by 60 days, then decide at the next quarterly review.
 
 **Phase 5 (future) — Native InsightConnect plugin**
 Wrap `vrcli` library actions in Rapid7's `insight-plugin` SDK (the library/CLI split in §3 makes this a thin adapter). Revisit gRPC/open-source support only if the deployment mix changes.
@@ -253,7 +253,7 @@ Wrap `vrcli` library actions in Rapid7's `insight-plugin` SDK (the library/CLI s
 2. **Two API keys, not one** — a SOAR service key and separate analyst keys, so rotation or compromise of one doesn't halt the other, and audit logs distinguish automated vs. human actions.
 3. **Spec-drift watch** (§6) — Rapid7 will extend this young API; a monthly drift check is how you find new endpoints (e.g., the missing file-download capability) the week they ship instead of a year later.
 4. **GitHub-side secret scanning as a second net** — even with no CI runner, enable GitHub push protection / secret scanning on the org (GitHub Advanced Security or the free tier for public-pattern detection). Pre-commit hooks only protect machines that installed them.
-5. **Dry-run mode** — `--dry-run` on every mutating command prints the exact request without sending it; invaluable when developing SOAR workflows against production.
+5. **Dry-run mode** — `--dry-run` on every mutating command prints the exact request without sending it; invaluable when developing SOAR workflows against production. *(Adopted 2026-06-10: plumbing is a Phase 1 deliverable; the flag is an acceptance criterion of whichever phase each mutating command lands in — see §8.)*
 6. **Rate-limit etiquette** — honor `Retry-After`/429 with capped exponential backoff so a runaway SOAR loop can't hammer the tenant; cap `--all` pagination with a sane default page budget.
 7. **Quarantine guardrails** — require an explicit allowlist label (e.g., never quarantine assets labeled `critical-infrastructure`) checked client-side before `vr ops contain --quarantine` fires. SOAR + quarantine is where automation accidents hurt most.
 8. **pipx distribution** — analysts install with `pipx install git+ssh://...` for an isolated, easily-upgraded environment; pin a tested tag in SOAR so workflows don't break on upgrades.
@@ -264,7 +264,8 @@ Wrap `vrcli` library actions in Rapid7's `insight-plugin` SDK (the library/CLI s
 
 ## 10. Open questions
 
-1. **File/container download** — can triage ZIPs (KapeFiles uploads) be retrieved via any hosted API? (Rapid7 ticket, Phase 1.)
+1. **File/container download** — can triage ZIPs (KapeFiles uploads) be retrieved via any hosted API? (Rapid7 ticket, filed in Phase 0.) Resolution branches: yes → add `vr flows download`; no-but-roadmapped → keep the Phase 4 checkpoint and wait; no-and-never → GUI-hybrid playbook step + `vr evidence ingest` (Phase 3 conditional scope).
 2. **API key scoping** — does the Insight platform key used for Velociraptor support narrower scopes/roles, or is it org-wide? Determines how much §9.2 helps.
 3. **Rate limits** — published limits for `insight-velociraptor` endpoints? (Affects polling defaults.)
-4. **Hunt `desiredState` semantics** — verify the full lifecycle enum (resume-after-stop? archive via API?) empirically in Phase 2.
+4. **InsightConnect maximum step duration** — gates the `--wait` single-blocking-step contract; answered by the Phase 0 spike, with the `--start`/`--check` fallback contract specified in §8 Phase 2.
+5. **Hunt `desiredState` semantics** — verify the full lifecycle enum (resume-after-stop? archive via API?) empirically in Phase 3 (the phase that implements hunts — the triage slice contains no hunt endpoints).
