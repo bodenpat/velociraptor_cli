@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vrcli"
+version = "0.1.0"
+description = "Library + CLI for the Rapid7-hosted Velociraptor REST API (InsightConnect SOAR automation and analyst use)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+authors = [{ name = "Infosec Engineering" }]
+# Minimal-dependency policy (PLAN.md §3): every new runtime dependency
+# requires a written justification in the PR.
+dependencies = [
+    "httpx>=0.27",
+    "click>=8.1",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "respx>=0.21",
+    "ruff>=0.4",
+    "pre-commit>=3.5",
+    "detect-secrets>=1.5",
+    "pip-tools>=7.4",
+]
+
+[project.scripts]
+vr = "vrcli.cli.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "S110", "S105", "S106", "S107"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S105", "S106", "S107"]

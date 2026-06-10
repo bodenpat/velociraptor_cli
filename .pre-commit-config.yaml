@@ -1,0 +1,36 @@
+# Pre-commit is the CI (PLAN.md §1: no CI runner available).
+# Install once per clone:  pre-commit install --install-hooks
+# Everything here is blocking; secret hooks especially so.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.3
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+        exclude: ^spec/
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.8
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+
+  - repo: local
+    hooks:
+      - id: no-insight-api-keys
+        name: reject Insight-API-key-shaped strings (non-placeholder UUIDs)
+        entry: python3 scripts/check_no_keys.py
+        language: system
+        types: [text]
+
+      - id: cli-docs-fresh
+        name: docs/cli-reference.md matches the click tree
+        entry: python3 scripts/gen_cli_docs.py --check
+        language: system
+        pass_filenames: false
+        files: ^(src/vrcli/|scripts/gen_cli_docs\.py|docs/cli-reference\.md)
