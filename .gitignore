@@ -1,0 +1,67 @@
+# ── Secrets & credentials — never commit, no exceptions ─────────────
+.env
+.env.*
+*.env
+!*.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+*_rsa
+*_ed25519
+*.kdbx
+credentials*
+secrets*
+apikey*
+api_key*
+*.secret
+.netrc
+.npmrc
+.pypirc
+
+# ── Local tooling state (gstack, claude, gbrain) ─────────────────────
+.gstack/
+.gbrain-source
+.claude/settings.local.json
+
+# ── Investigation output — evidence & audit logs stay out of git ─────
+evidence/
+collections/
+audit/
+*.audit.jsonl
+
+# ── Python ────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.ruff_cache/
+.mypy_cache/
+
+# ── Editors & OS noise ───────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Misc local artifacts ─────────────────────────────────────────────
+*.log
+*.tmp
+*.bak
