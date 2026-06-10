@@ -4,6 +4,11 @@ Python library + CLI for the **Rapid7-hosted Velociraptor REST API**, built
 for InsightConnect (SOAR) evidence-collection automation and interactive
 analyst use from WSL.
 
+**Status:** Phases 0–3 of [PLAN.md](PLAN.md) are implemented on `main` — all
+26 REST operations have 1:1 `vr` commands, plus six `vr ops` investigation
+composites. 341 tests pass; pre-commit hooks are the CI. Phase 4 (SOAR
+rollout) and Phase 5 (native plugin) remain — see [TODO.md](TODO.md).
+
 Scope (PLAN.md §1):
 
 - **REST only** — the Rapid7-hosted (paid) Velociraptor API. The open-source
@@ -104,13 +109,69 @@ branch on the exit code:
 | `6` | API error (other 4xx/5xx) |
 | `7` | network / TLS failure |
 
+## Command groups
+
+| Group | What it covers |
+|---|---|
+| `vr status` | Auth + connectivity smoke test (SOAR health check) |
+| `vr clients` | List/get/resolve/update/delete clients |
+| `vr labels` | List/add/remove labels; bulk-add to many clients |
+| `vr hunts` | List/create/get/pause/resume/stop hunts; results; errors |
+| `vr flows` | List/create/get collections; results; logs |
+| `vr artifacts` | List/get/add/update/delete artifact definitions |
+| `vr ops` | `triage`, `live`, `ioc-hunt`, `contain`/`release`, `enrich` |
+
+Every endpoint is mapped to its command in
+[docs/api-coverage.md](docs/api-coverage.md). The full, always-current
+option-level reference is [docs/cli-reference.md](docs/cli-reference.md)
+(auto-generated from the click tree). Copy-pasteable InsightConnect recipes
+for the four v1 use cases are in
+[docs/soar-playbooks.md](docs/soar-playbooks.md).
+
+## Repository layout
+
+```
+velociraptor_cli/
+├── README.md            ← you are here
+├── PLAN.md              project plan, decisions, phases, open questions
+├── TODO.md              what's left to do
+├── SECURITY.md          secret handling, key rotation, exposure response
+├── CHANGELOG.md         Keep-a-Changelog + SemVer
+├── spec/                vendored OpenAPI 3.1 contract (the source of truth)
+├── src/vrcli/
+│   ├── config.py transport.py errors.py pagination.py   core library
+│   ├── api/             one module per API group (pure library, no CLI)
+│   ├── ops/             composite SOAR operations + evidence/audit/wait
+│   └── cli/             click command tree (thin layer over api/ + ops/)
+├── tests/               pytest + respx (341 tests)
+├── scripts/             gen_cli_docs.py, check_spec_drift.py, check_no_keys.py
+└── docs/                see Documentation below
+```
+
 ## Documentation
 
-- [docs/installation.md](docs/installation.md) — pipx, pip fallback,
-  orchestrator pinning, dev setup
-- [docs/configuration.md](docs/configuration.md) — env vars, output
-  contract, exit codes, `--wait` / `--all` / `--dry-run`, TLS and proxies
+Everything detailed lives under [`docs/`](docs/):
+
+- [docs/installation.md](docs/installation.md) — pipx, `pip --user`
+  fallback, orchestrator tag-pinning, dev setup
+- [docs/configuration.md](docs/configuration.md) — every environment
+  variable, the JSON-stdout output contract, exit codes,
+  `--wait` / `--all` / `--dry-run`, TLS and corporate-proxy CAs
 - [docs/cli-reference.md](docs/cli-reference.md) — auto-generated from the
   live command tree; never hand-edited, cannot drift from the code
+- [docs/api-coverage.md](docs/api-coverage.md) — every one of the 26 spec
+  operations mapped to its `vr` command, plus the composite→primitive map
+  and the known file-download gap
+- [docs/soar-playbooks.md](docs/soar-playbooks.md) — InsightConnect recipes
+  for triage-on-alert, IOC sweep, contain-on-detection, and enrichment,
+  with the JSON each step returns and exit-code branching
+
+Project-level documents at the repo root:
+
 - [SECURITY.md](SECURITY.md) — secret handling, key rotation runbook,
-  exposure response
+  exposure response (kept at root so GitHub surfaces it)
+- [PLAN.md](PLAN.md) — the full project plan: decisions, architecture,
+  phases, and open questions
+- [TODO.md](TODO.md) — remaining phases, the Phase-3 tenant verifications,
+  and external dependencies
+- [CHANGELOG.md](CHANGELOG.md) — release history (Keep a Changelog + SemVer)
