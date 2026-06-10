@@ -41,6 +41,81 @@ Usage: vr artifacts [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
+
+Commands:
+  add     Add a custom artifact from a YAML file.
+  delete  Remove an artifact definition.
+  get     Get an artifact definition.
+  list    List artifacts.
+  update  Modify an existing artifact definition.
+```
+
+#### `vr artifacts add`
+
+```
+Usage: vr artifacts add [OPTIONS]
+
+  Add a custom artifact from a YAML file.
+
+Options:
+  --file FILE  Artifact definition YAML file.  [required]
+  --dry-run    Print the exact API request without sending it.
+  --help       Show this message and exit.
+```
+
+#### `vr artifacts delete`
+
+```
+Usage: vr artifacts delete [OPTIONS] NAME
+
+  Remove an artifact definition.
+
+Options:
+  --yes      Confirm this destructive action (required; there is no interactive prompt).
+  --dry-run  Print the exact API request without sending it.
+  --help     Show this message and exit.
+```
+
+#### `vr artifacts get`
+
+```
+Usage: vr artifacts get [OPTIONS] NAME
+
+  Get an artifact definition.
+
+Options:
+  --format [json|yaml]  yaml prints the raw YAML definition (explicit non-JSON output, like --output
+                        table).  [default: json]
+  --help                Show this message and exit.
+```
+
+#### `vr artifacts list`
+
+```
+Usage: vr artifacts list [OPTIONS]
+
+  List artifacts.
+
+Options:
+  --type [client|client_event|server|server_event|notebook]
+                                  Filter by artifact type.
+  --os [windows|linux|darwin]     Filter by operating system.
+  --builtin / --no-builtin        Include or exclude built-in artifacts (default: server decides).
+  --custom / --no-custom          Include or exclude custom artifacts (default: server decides).
+  --help                          Show this message and exit.
+```
+
+#### `vr artifacts update`
+
+```
+Usage: vr artifacts update [OPTIONS] NAME
+
+  Modify an existing artifact definition.
+
+Options:
+  --file FILE  Artifact definition YAML file.  [required]
+  --dry-run    Print the exact API request without sending it.
+  --help       Show this message and exit.
 ```
 
 ### `vr clients`
@@ -138,6 +213,94 @@ Usage: vr flows [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
+
+Commands:
+  create   Start a collection on a client (accepts a client ID or hostname).
+  get      Get one flow (accepts a client ID or hostname).
+  list     List flows for a client (accepts a client ID or hostname).
+  logs     Get a flow's execution logs (accepts a client ID or hostname).
+  results  List available result artifacts, or fetch rows with --artifact.
+```
+
+#### `vr flows create`
+
+```
+Usage: vr flows create [OPTIONS] CLIENT_ID
+
+  Start a collection on a client (accepts a client ID or hostname).
+
+Options:
+  --artifact NAME                 Artifact to collect (repeatable).  [required]
+  --param ARTIFACT:KEY=VALUE      Artifact parameter; bare KEY=VALUE is allowed with a single
+                                  --artifact.
+  --collection-timeout SEC        Collection execution timeout on the endpoint
+                                  (ArtifactCollectorArgs.timeout).  [x>=1]
+  --cpu-limit PCT                 CPU usage limit for the collection.  [x>=0]
+  --max-upload-bytes INTEGER RANGE
+                                  Upload byte cap for the collection.  [x>=1]
+  --urgent                        Mark the collection urgent.
+  --wait                          Block until the operation completes.
+  --timeout INTEGER RANGE         Give up waiting after this many seconds (exit code 5).  [default:
+                                  600; x>=1]
+  --poll-interval INTEGER RANGE   Seconds between polls while waiting.  [default: 10; x>=1]
+  --dry-run                       Print the exact API request without sending it.
+  --help                          Show this message and exit.
+```
+
+#### `vr flows get`
+
+```
+Usage: vr flows get [OPTIONS] CLIENT_ID FLOW_ID
+
+  Get one flow (accepts a client ID or hostname).
+
+Options:
+  --help  Show this message and exit.
+```
+
+#### `vr flows list`
+
+```
+Usage: vr flows list [OPTIONS] CLIENT_ID
+
+  List flows for a client (accepts a client ID or hostname).
+
+Options:
+  --creator TEXT               Filter by creator username.
+  --sort [newest|oldest]       Sort order for results.
+  --limit INTEGER RANGE        Maximum results to return.  [x>=1]
+  --all                        Follow cursors and fetch every page.
+  --page-budget INTEGER RANGE  Maximum pages to fetch with --all.  [default: 100; x>=1]
+  --help                       Show this message and exit.
+```
+
+#### `vr flows logs`
+
+```
+Usage: vr flows logs [OPTIONS] CLIENT_ID FLOW_ID
+
+  Get a flow's execution logs (accepts a client ID or hostname).
+
+Options:
+  --all                        Follow cursors and fetch every page.
+  --page-budget INTEGER RANGE  Maximum pages to fetch with --all.  [default: 100; x>=1]
+  --help                       Show this message and exit.
+```
+
+#### `vr flows results`
+
+```
+Usage: vr flows results [OPTIONS] CLIENT_ID FLOW_ID
+
+  List available result artifacts, or fetch rows with --artifact.
+
+Options:
+  --artifact NAME              Fetch result rows for this artifact.
+  --source S                   Artifact source (requires --artifact).
+  --all                        Follow cursors and fetch every page.
+  --out FILE                   Write result rows as JSONL to FILE (requires --artifact).
+  --page-budget INTEGER RANGE  Maximum pages to fetch with --all.  [default: 100; x>=1]
+  --help                       Show this message and exit.
 ```
 
 ### `vr hunts`
@@ -149,6 +312,136 @@ Usage: vr hunts [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
+
+Commands:
+  create   Create a hunt (fleet-wide collection).
+  errors   Get per-client hunt errors.
+  get      Get hunt details and stats.
+  list     List hunts.
+  pause    Pause a hunt (desiredState=PAUSED).
+  results  Get hunt results (one page, or every page with --all).
+  resume   Resume a paused hunt (desiredState=RUNNING).
+  stop     Stop a hunt (desiredState=STOPPED).
+```
+
+#### `vr hunts create`
+
+```
+Usage: vr hunts create [OPTIONS]
+
+  Create a hunt (fleet-wide collection).
+
+Options:
+  --artifact TEXT                Artifact to collect (repeatable).  [required]
+  --param ARTIFACT:KEY=VALUE     Artifact parameter (repeatable; bare KEY=VALUE allowed with a
+                                 single --artifact).
+  --label TEXT                   Only target clients with this label (repeatable).
+  --exclude-label TEXT           Skip clients with this label (repeatable).
+  --os [windows|linux|darwin]    Only target this operating system.
+  --client-limit INTEGER RANGE   Maximum number of clients to schedule.  [x>=1]
+  --expires TEXT                 Hunt expiry as a duration from now (e.g. 3600, 30m, 24h, 7d).
+                                 [default: 7d]
+  --description TEXT             Hunt description.
+  --tag TEXT                     Hunt tag (repeatable).
+  --urgent                       Skip client-side queueing for this collection.
+  --wait                         Block until the operation completes.
+  --timeout INTEGER RANGE        Give up waiting after this many seconds (exit code 5).  [default:
+                                 600; x>=1]
+  --poll-interval INTEGER RANGE  Seconds between polls while waiting.  [default: 10; x>=1]
+  --dry-run                      Print the exact API request without sending it.
+  --help                         Show this message and exit.
+```
+
+#### `vr hunts errors`
+
+```
+Usage: vr hunts errors [OPTIONS] HUNT_ID
+
+  Get per-client hunt errors.
+
+Options:
+  --help  Show this message and exit.
+```
+
+#### `vr hunts get`
+
+```
+Usage: vr hunts get [OPTIONS] HUNT_ID
+
+  Get hunt details and stats.
+
+Options:
+  --help  Show this message and exit.
+```
+
+#### `vr hunts list`
+
+```
+Usage: vr hunts list [OPTIONS]
+
+  List hunts.
+
+Options:
+  --state [unset|paused|running|stopped|archived|deleted]
+                                  Filter by hunt state.
+  --sort [newest|oldest]          Sort order.
+  --limit INTEGER RANGE           Maximum results to return.  [x>=1]
+  --all                           Follow cursors and fetch every page.
+  --page-budget INTEGER RANGE     Maximum pages to fetch with --all.  [default: 100; x>=1]
+  --help                          Show this message and exit.
+```
+
+#### `vr hunts pause`
+
+```
+Usage: vr hunts pause [OPTIONS] HUNT_ID
+
+  Pause a hunt (desiredState=PAUSED).
+
+Options:
+  --dry-run  Print the exact API request without sending it.
+  --help     Show this message and exit.
+```
+
+#### `vr hunts results`
+
+```
+Usage: vr hunts results [OPTIONS] HUNT_ID
+
+  Get hunt results (one page, or every page with --all).
+
+Options:
+  --out FILE                   Write result rows as JSONL to FILE; stdout then carries a summary
+                               document.
+  --limit INTEGER RANGE        Maximum results to return.  [x>=1]
+  --all                        Follow cursors and fetch every page.
+  --page-budget INTEGER RANGE  Maximum pages to fetch with --all.  [default: 100; x>=1]
+  --help                       Show this message and exit.
+```
+
+#### `vr hunts resume`
+
+```
+Usage: vr hunts resume [OPTIONS] HUNT_ID
+
+  Resume a paused hunt (desiredState=RUNNING).
+
+Options:
+  --dry-run  Print the exact API request without sending it.
+  --help     Show this message and exit.
+```
+
+#### `vr hunts stop`
+
+```
+Usage: vr hunts stop [OPTIONS] HUNT_ID
+
+  Stop a hunt (desiredState=STOPPED).
+
+Options:
+  --yes      Confirm this destructive action (required; there is no interactive prompt).
+  --dry-run  Print the exact API request without sending it.
+  --help     Show this message and exit.
 ```
 
 ### `vr labels`
@@ -160,6 +453,62 @@ Usage: vr labels [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
+
+Commands:
+  add       Add a label to a client.
+  bulk-add  Add one label to many clients (sources combine: options, file, stdin).
+  list      List labels on a client (accepts a client ID or hostname).
+  remove    Remove a label from a client.
+```
+
+#### `vr labels add`
+
+```
+Usage: vr labels add [OPTIONS] CLIENT_ID LABEL
+
+  Add a label to a client.
+
+Options:
+  --dry-run  Print the exact API request without sending it.
+  --help     Show this message and exit.
+```
+
+#### `vr labels bulk-add`
+
+```
+Usage: vr labels bulk-add [OPTIONS] LABEL
+
+  Add one label to many clients (sources combine: options, file, stdin).
+
+Options:
+  --client-id ID    Client ID or hostname to label; repeatable.
+  --from-file FILE  File with one client ID/hostname per line (blanks and # comments ignored).
+  --stdin           Read client IDs/hostnames from stdin, one per line.
+  --dry-run         Print the exact API request without sending it.
+  --help            Show this message and exit.
+```
+
+#### `vr labels list`
+
+```
+Usage: vr labels list [OPTIONS] CLIENT_ID
+
+  List labels on a client (accepts a client ID or hostname).
+
+Options:
+  --help  Show this message and exit.
+```
+
+#### `vr labels remove`
+
+```
+Usage: vr labels remove [OPTIONS] CLIENT_ID LABEL
+
+  Remove a label from a client.
+
+Options:
+  --dry-run  Print the exact API request without sending it.
+  --help     Show this message and exit.
 ```
 
 ### `vr ops`
@@ -171,6 +520,150 @@ Usage: vr ops [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
+
+Commands:
+  contain   Tag HOST (client ID or hostname) with an investigation label; optionally quarantine.
+  enrich    Enrich HOST (client ID or hostname) for an investigation.
+  ioc-hunt  Launch a fleet-wide IOC hunt; with --wait, emit a per-client hit summary.
+  live      Targeted live response: collect curated presets from one host.
+  release   Remove HOST's containment label and, if it was quarantined, unquarantine it.
+  triage    Collect a KapeFiles triage from HOST (client ID or hostname) with a SHA-256...
+```
+
+#### `vr ops contain`
+
+```
+Usage: vr ops contain [OPTIONS] HOST
+
+  Tag HOST (client ID or hostname) with an investigation label; optionally quarantine.
+
+  With --quarantine the client's current labels are checked CLIENT-SIDE against the quarantine deny
+  set before any request mutates anything (PLAN.md §9.7); a match refuses the whole operation with
+  exit code 2.
+
+Options:
+  --label TEXT        Containment label to add.  [default: under-investigation]
+  --quarantine        Additionally launch Windows.Remediation.Quarantine and verify it scheduled.
+  --deny-label LABEL  Extra label that blocks --quarantine (added to the built-in deny set and
+                      $R7_VR_QUARANTINE_DENY_LABELS).
+  --dry-run           Print the exact API request without sending it.
+  --help              Show this message and exit.
+```
+
+#### `vr ops enrich`
+
+```
+Usage: vr ops enrich [OPTIONS] HOST
+
+  Enrich HOST (client ID or hostname) for an investigation.
+
+  One JSON document: full client record, labels, last-seen, and the most recent flows. Read-only;
+  writes an audit record to $R7_VR_AUDIT_LOG when set.
+
+Options:
+  --flows INTEGER RANGE  Maximum recent flows to include.  [default: 10; x>=1]
+  --help                 Show this message and exit.
+```
+
+#### `vr ops ioc-hunt`
+
+```
+Usage: vr ops ioc-hunt [OPTIONS]
+
+  Launch a fleet-wide IOC hunt; with --wait, emit a per-client hit summary.
+
+  At least one of --hash/--filename/--yara is required; they may be combined. No evidence directory
+  is produced — the audit record goes to $R7_VR_AUDIT_LOG when set.
+
+Options:
+  --hash SHA256                  SHA-256 to hunt for (repeatable; matched client-side against result
+                                 rows).
+  --filename GLOB                Filename glob to hunt for (repeatable).
+  --yara FILE                    YARA rule file; its contents become the hunt's YaraRule parameter.
+  --glob TEXT                    Filesystem scope searched for --hash/--yara IOCs (ignored when
+                                 --filename sets it).  [default: C:\Users\**]
+  --artifact TEXT                Artifact the hunt collects.  [default: Windows.Search.FileFinder]
+  --label TEXT                   Only target clients with this label (repeatable).
+  --exclude-label TEXT           Skip clients with this label (repeatable).
+  --os [windows|linux|darwin]    Only target this operating system.
+  --client-limit INTEGER RANGE   Maximum number of clients to schedule.  [x>=1]
+  --expires TEXT                 Hunt expiry as a duration from now (e.g. 3600, 30m, 24h, 7d).
+                                 [default: 7d]
+  --description TEXT             Hunt description.
+  --tag TEXT                     Hunt tag (repeatable).
+  --wait                         Block until the operation completes.
+  --timeout INTEGER RANGE        Give up waiting after this many seconds (exit code 5).  [default:
+                                 600; x>=1]
+  --poll-interval INTEGER RANGE  Seconds between polls while waiting.  [default: 10; x>=1]
+  --dry-run                      Print the exact API request without sending it.
+  --help                         Show this message and exit.
+```
+
+#### `vr ops live`
+
+```
+Usage: vr ops live [OPTIONS] HOST
+
+  Targeted live response: collect curated presets from one host.
+
+  HOST accepts a client ID or hostname. Always waits for the collection to finish, then writes
+  result rows + logs + SHA-256 manifest + audit record to the evidence directory.
+
+Options:
+  --preset [pslist|netstat|persistence|tasks|browser-history|users]
+                                  Curated artifact preset (repeatable; artifact lists are unioned
+                                  into one flow).  [required]
+  --out DIR                       Evidence directory (default:
+                                  ./evidence/live-<client_id>-<flow_id>; evidence/ is gitignored).
+  --timeout INTEGER RANGE         Give up waiting after this many seconds (exit code 5).  [default:
+                                  600; x>=1]
+  --poll-interval INTEGER RANGE   Seconds between polls while waiting.  [default: 10; x>=1]
+  --urgent                        Mark the collection urgent.
+  --dry-run                       Print the exact API request without sending it.
+  --help                          Show this message and exit.
+```
+
+#### `vr ops release`
+
+```
+Usage: vr ops release [OPTIONS] HOST
+
+  Remove HOST's containment label and, if it was quarantined, unquarantine it.
+
+Options:
+  --label TEXT  Containment label to remove.  [default: under-investigation]
+  --dry-run     Print the exact API request without sending it.
+  --help        Show this message and exit.
+```
+
+#### `vr ops triage`
+
+```
+Usage: vr ops triage [OPTIONS] [HOST]
+
+  Collect a KapeFiles triage from HOST (client ID or hostname) with a SHA-256 evidence manifest and
+  audit record.
+
+Options:
+  --artifact NAME                 Collector artifact to run.  [default: Windows.KapeFiles.Targets]
+  --targets GROUP                 KapeFiles target group to enable (spec env parameter set to 'Y').
+                                  [default: KapeTriage]
+  --out DIR                       Evidence directory (default:
+                                  ./evidence/triage-<client_id>-<flow_id>; evidence/ is gitignored).
+                                  Must not already contain files.
+  --max-upload-bytes INTEGER RANGE
+                                  Upload byte cap for the collection.  [x>=1]
+  --urgent                        Mark the collection urgent.
+  --start                         Start the flow and return a resume token instead of blocking
+                                  (default when neither --wait nor --check is given).
+  --check TOKEN                   Resume token from --start: poll once; when the flow is FINISHED,
+                                  write the evidence directory exactly as --wait would.
+  --wait                          Block until the operation completes.
+  --timeout INTEGER RANGE         Give up waiting after this many seconds (exit code 5).  [default:
+                                  600; x>=1]
+  --poll-interval INTEGER RANGE   Seconds between polls while waiting.  [default: 10; x>=1]
+  --dry-run                       Print the exact API request without sending it.
+  --help                          Show this message and exit.
 ```
 
 ### `vr status`
