@@ -96,3 +96,19 @@ def test_verbose_logs_never_leak_key(env, mock_api, capsys):
     _code, out, err = run_main(capsys, "--verbose", "status")
     assert SENTINEL_KEY not in out
     assert SENTINEL_KEY not in err
+
+
+def test_unexpected_exception_stays_in_contract(env, mock_api, capsys, monkeypatch):
+    """An unexpected (non-VRError) exception must still yield ONE JSON document
+    on stdout and an in-contract exit code (1) — never a bare traceback."""
+    def boom(*_a, **_k):
+        raise RuntimeError("kaboom")
+
+    monkeypatch.setattr("vrcli.transport.VRTransport.request", boom)
+    code, out, err = run_main(capsys, "status")
+    assert code == 1
+    doc = json.loads(out)  # stdout is still exactly one JSON document
+    assert doc["error"]["exit_code"] == 1
+    assert doc["error"]["type"] == "RuntimeError"
+    assert "kaboom" not in out  # internal detail goes to stderr, not the JSON
+    assert "internal error" in err.lower()

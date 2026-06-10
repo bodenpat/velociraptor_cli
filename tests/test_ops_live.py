@@ -115,7 +115,7 @@ def test_end_to_end_writes_evidence_dir(invoke, mock_api, tmp_path):
         "artifacts": {artifact: 2},
         "log_lines": 1,
         "out_dir": str(out),
-        "manifest_files": 3,
+        "manifest_files": 4,
     }
 
     assert (out / "flow.json").is_file()
@@ -132,6 +132,7 @@ def test_end_to_end_writes_evidence_dir(invoke, mock_api, tmp_path):
         "flow.json",
         f"results/{artifact}.jsonl",
         "logs.jsonl",
+        "audit.jsonl",
     }
 
 

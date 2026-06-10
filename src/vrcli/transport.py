@@ -38,6 +38,12 @@ MUTATING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 _ACTIVE_SECRETS: set[str] = set()
 
 
+def active_secrets() -> frozenset[str]:
+    """The set of registered secret values, for redaction outside the logging
+    path (e.g. the audit JSONL writer). Source-independent."""
+    return frozenset(_ACTIVE_SECRETS)
+
+
 class SecretRedactingFilter(logging.Filter):
     """Scrubs every registered secret from any record that escapes."""
 

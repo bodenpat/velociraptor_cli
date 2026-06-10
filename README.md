@@ -96,6 +96,7 @@ branch on the exit code:
 | Exit code | Meaning |
 |---|---|
 | `0` | success |
+| `1` | unexpected internal error (still one JSON doc on stdout, never a bare traceback) |
 | `2` | usage or configuration error |
 | `3` | auth or permission denied (401/403) |
 | `4` | not found (404, or a hostname that resolved to zero clients) |

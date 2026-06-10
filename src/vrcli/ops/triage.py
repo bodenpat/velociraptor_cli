@@ -25,7 +25,7 @@ from ..api import flows as flows_api
 from ..api.clients import resolve_client_arg
 from ..errors import UsageError
 from ..transport import VRTransport
-from ._audit import write_audit
+from ._audit import record_evidence_audit, write_audit
 from ._collect import collect_flow_evidence
 from ._evidence import EvidenceDir
 from ._wait import check_flow, flow_state, wait_for_flow
@@ -255,16 +255,20 @@ def _collect_finalize_audit(
     context: dict,
     mode: str,
 ) -> dict:
-    """Shared terminal path: EvidenceDir -> collect -> finalize -> audit -> summary."""
+    """Shared terminal path: EvidenceDir -> collect -> audit-into-dir -> finalize -> summary.
+
+    The audit record is written into the evidence dir BEFORE finalize() so the
+    manifest hashes audit.jsonl too (chain-of-custody covers the audit record).
+    """
     evidence = EvidenceDir(out, context=context)
     summary = collect_flow_evidence(transport, client_id, flow_id, evidence)
-    manifest = evidence.finalize()
-    write_audit(
+    record_evidence_audit(
+        evidence,
         AUDIT_COMMAND,
-        out_dir=evidence.path,
         created={"client_id": client_id, "flow_id": flow_id},
         extra={"mode": mode, "out": str(evidence.path)},
     )
+    manifest = evidence.finalize()
     return {
         "done": True,
         "client_id": client_id,

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-
 import click
 
 from ..api import flows as api
@@ -14,6 +12,7 @@ from ._common import (
     AppCtx,
     build_collector_args,
     dry_run_option,
+    dump_jsonl,
     emit,
     paging_options,
     pass_app,
@@ -194,9 +193,7 @@ def results(app: AppCtx, client_id, flow_id, artifact, source, fetch_all, out, p
             rows = _page_rows(
                 api.get_flow_results(transport, resolved, flow_id, artifact, source=source)
             )
-        with open(out, "w", encoding="utf-8") as fh:
-            for row in rows:
-                fh.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
+        dump_jsonl(out, rows)
         emit(app, {"rows": len(rows), "out": out})
     elif fetch_all:
         emit(

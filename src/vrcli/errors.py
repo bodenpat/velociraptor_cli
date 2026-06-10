@@ -3,17 +3,23 @@
 Exit-code contract (PLAN.md §3) — SOAR workflows branch on these:
 
     0  success
+    1  unexpected internal error (a bug; stdout still carries a JSON error doc)
     2  usage / configuration error
     3  auth or permission denied (401/403)
     4  not found (404)
     5  wait-timeout (--wait exceeded --timeout)
     6  API error (other 4xx/5xx)
     7  network / TLS failure
+
+Code 1 is the catch-all: any exception that is not a VRError still yields a
+single JSON document on stdout (never a bare traceback), so a SOAR step can
+always parse the result.
 """
 
 from __future__ import annotations
 
 EXIT_OK = 0
+EXIT_INTERNAL = 1
 EXIT_USAGE = 2
 EXIT_AUTH = 3
 EXIT_NOT_FOUND = 4

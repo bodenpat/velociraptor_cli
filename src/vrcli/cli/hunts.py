@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-
 import click
 
 from ..api import hunts as api
@@ -12,6 +10,7 @@ from ._common import (
     AppCtx,
     build_collector_args,
     dry_run_option,
+    dump_jsonl,
     emit,
     paging_options,
     parse_duration,
@@ -219,9 +218,7 @@ def results(app: AppCtx, hunt_id, out_file, limit, fetch_all, page_budget) -> No
         else:
             rows = document or []
     if out_file:
-        with open(out_file, "w", encoding="utf-8") as fh:
-            for row in rows:
-                fh.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
+        dump_jsonl(out_file, rows)
         emit(app, {"hunt_id": hunt_id, "rows": len(rows), "out": out_file})
     else:
         emit(app, document)

@@ -36,7 +36,11 @@ def collect_flow_evidence(
     flow = flows_api.get_flow(transport, client_id, flow_id)
     evidence.write_json("flow.json", flow)
 
-    available = flows_api.list_flow_results(transport, client_id, flow_id) or []
+    available = flows_api.list_flow_results(transport, client_id, flow_id)
+    if isinstance(available, dict):  # {size, cursor, data} envelope -> the data array
+        available = available.get("data") or []
+    elif available is None:
+        available = []
     artifact_names = [
         entry if isinstance(entry, str) else entry.get("artifact") or entry.get("name", "")
         for entry in available

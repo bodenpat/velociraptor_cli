@@ -73,6 +73,17 @@ def emit_error(error_dict: dict) -> None:
     click.echo(json.dumps({"error": error_dict}, indent=2, ensure_ascii=False, default=str))
 
 
+def dump_jsonl(path: str, rows) -> None:
+    """Write rows as JSONL to a local file; a filesystem failure is a usage
+    error (exit 2), not an internal one."""
+    try:
+        with open(path, "w", encoding="utf-8") as fh:
+            for row in rows:
+                fh.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
+    except OSError as exc:
+        raise UsageError(f"Cannot write {path}: {exc.strerror}") from exc
+
+
 def _render_table(data: Any) -> str:
     if isinstance(data, dict):
         rows = [(str(k), _cell(v)) for k, v in data.items()]

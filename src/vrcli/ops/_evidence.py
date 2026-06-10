@@ -54,7 +54,10 @@ class EvidenceDir:
                 f"Evidence directory {self.path} already exists and is not empty; "
                 f"refusing to mix evidence from different collections"
             )
-        self.path.mkdir(parents=True, exist_ok=True)
+        try:
+            self.path.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise UsageError(f"Cannot create evidence directory {self.path}: {exc.strerror}") from exc
         self.context = context or {}
         self.started = utc_now()
         self._files: list[dict] = []
@@ -70,9 +73,12 @@ class EvidenceDir:
 
     def write_bytes(self, name: str, payload: bytes) -> Path:
         target = self._safe_path(name)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        with open(target, "wb") as fh:
-            fh.write(payload)
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with open(target, "wb") as fh:
+                fh.write(payload)
+        except OSError as exc:
+            raise UsageError(f"Cannot write evidence file {name!r}: {exc.strerror}") from exc
         self._files.append(
             {
                 "name": str(target.relative_to(self.path)),
@@ -115,9 +121,12 @@ class EvidenceDir:
         }
         if extra:
             manifest.update(extra)
-        with open(self.path / MANIFEST_NAME, "w", encoding="utf-8") as fh:
-            json.dump(manifest, fh, indent=2, ensure_ascii=False, default=str)
-            fh.write("\n")
+        try:
+            with open(self.path / MANIFEST_NAME, "w", encoding="utf-8") as fh:
+                json.dump(manifest, fh, indent=2, ensure_ascii=False, default=str)
+                fh.write("\n")
+        except OSError as exc:
+            raise UsageError(f"Cannot write evidence manifest: {exc.strerror}") from exc
         return manifest
 
     def _safe_path(self, name: str) -> Path:

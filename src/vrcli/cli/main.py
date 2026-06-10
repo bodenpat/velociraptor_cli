@@ -7,7 +7,7 @@ import sys
 import click
 
 from .. import __version__
-from ..errors import EXIT_USAGE, VRError
+from ..errors import EXIT_INTERNAL, EXIT_USAGE, VRError
 from ._common import AppCtx, emit, emit_error, pass_app, setup_logging
 
 
@@ -85,6 +85,18 @@ def main(argv: list[str] | None = None) -> int:
         emit_error(exc.to_dict())
         click.echo(f"error: {exc.message}", err=True)
         return exc.exit_code
+    except Exception as exc:  # noqa: BLE001 — last line of defense for the SOAR contract
+        # Never let an unexpected exception reach the shell as a bare traceback:
+        # stdout must always carry one parseable JSON document (PLAN §3).
+        emit_error(
+            {
+                "type": type(exc).__name__,
+                "message": "unexpected internal error",
+                "exit_code": EXIT_INTERNAL,
+            }
+        )
+        click.echo(f"internal error: {type(exc).__name__}: {exc}", err=True)
+        return EXIT_INTERNAL
 
 
 if __name__ == "__main__":

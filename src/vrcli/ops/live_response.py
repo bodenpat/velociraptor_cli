@@ -24,7 +24,7 @@ from ..api import flows as flows_api
 from ..api.clients import resolve_client_arg
 from ..errors import UsageError
 from ..transport import VRTransport
-from ._audit import write_audit
+from ._audit import record_evidence_audit
 from ._collect import collect_flow_evidence
 from ._evidence import EvidenceDir
 from ._wait import wait_for_flow
@@ -117,13 +117,13 @@ def live_response(
         },
     )
     collected = collect_flow_evidence(transport, client_id, flow_id, evidence)
-    manifest = evidence.finalize()
-    write_audit(
+    record_evidence_audit(
+        evidence,
         "ops live",
-        out_dir=evidence.path,
         created={"client_id": client_id, "flow_id": flow_id},
         extra={"presets": preset_names, "artifacts": artifacts},
     )
+    manifest = evidence.finalize()
 
     return {
         "ops": "live",

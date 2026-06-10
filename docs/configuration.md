@@ -111,12 +111,17 @@ workflows branch on these:
 | Code | Meaning |
 |---|---|
 | `0` | success |
+| `1` | unexpected internal error (a bug — stdout still carries one JSON error document, never a bare traceback) |
 | `2` | usage error or invalid environment configuration |
 | `3` | auth or permission denied (HTTP 401/403) |
 | `4` | not found (HTTP 404, or a hostname that resolved to zero clients) |
 | `5` | wait-timeout: a `--wait` poll loop exceeded `--timeout` |
 | `6` | API error (any other 4xx/5xx; also a flow that ends in ERROR) |
 | `7` | network, DNS, TLS, or timeout failure before an HTTP response |
+
+Code `1` is the catch-all: any unexpected exception is still reported as one
+JSON document on stdout with an in-contract exit code, so a SOAR step can
+always parse the result.
 
 ## Waiting: `--wait`, `--timeout`, `--poll-interval`
 

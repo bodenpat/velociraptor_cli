@@ -124,7 +124,7 @@ def test_wait_collects_evidence_end_to_end(invoke, mock_api, monkeypatch, tmp_pa
         "out": str(out),
         "artifacts": {ARTIFACT: 2},
         "log_lines": 1,
-        "manifest_files": 3,
+        "manifest_files": 4,
     }
 
     # create-flow request: method, path, exact ArtifactCollectorArgs body
@@ -138,12 +138,14 @@ def test_wait_collects_evidence_end_to_end(invoke, mock_api, monkeypatch, tmp_pa
     }
     assert flow_route.call_count == 3  # poll RUNNING, poll FINISHED, evidence snapshot
 
-    # evidence directory contents + manifest hashes
+    # evidence directory contents + manifest hashes — audit.jsonl is hashed
+    # into the manifest too (chain-of-custody covers the audit record).
     manifest = json.loads((out / "manifest.json").read_text())
     assert {f["name"] for f in manifest["files"]} == {
         "flow.json",
         f"results/{ARTIFACT}.jsonl",
         "logs.jsonl",
+        "audit.jsonl",
     }
     for entry in manifest["files"]:
         path = out / entry["name"]
@@ -307,13 +309,14 @@ def test_check_finished_writes_evidence_like_wait(invoke, mock_api, tmp_path):
         "out": str(out),
         "artifacts": {ARTIFACT: 2},
         "log_lines": 1,
-        "manifest_files": 3,
+        "manifest_files": 4,
     }
     manifest = json.loads((out / "manifest.json").read_text())
     assert {f["name"] for f in manifest["files"]} == {
         "flow.json",
         f"results/{ARTIFACT}.jsonl",
         "logs.jsonl",
+        "audit.jsonl",
     }
     for entry in manifest["files"]:
         assert entry["sha256"] == hashlib.sha256((out / entry["name"]).read_bytes()).hexdigest()

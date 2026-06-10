@@ -23,3 +23,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   every mutating command, and quarantine guardrails.
 - Documentation: auto-generated CLI reference, API coverage map, SOAR
   playbooks, installation/configuration/security guides.
+
+### Fixed (adversarial review pass)
+
+- URL-encode the `client_id` path segment in `vr clients get/update/delete`
+  so a crafted ID can no longer traverse out of `/clients/{id}`.
+- Audit-log argv redaction now scrubs the key regardless of source
+  (`R7_VR_API_KEY` **or** `R7_VR_API_KEY_FILE`) by reading the live secret
+  registry, closing a cleartext-key path to the audit JSONL.
+- `main()` has a catch-all so an unexpected exception still emits one JSON
+  document on stdout and an in-contract exit code (`1`) instead of a bare
+  traceback; local filesystem write failures map to exit `2`.
+- Evidence collection unwraps the `{size,cursor,data}` envelope from
+  `getAvailableFlowResults` instead of treating its keys as artifact names.
+- The per-collection audit record is written into the evidence directory
+  **before** the manifest is finalized, so `audit.jsonl` is hashed into the
+  SHA-256 manifest (chain-of-custody now covers the audit record itself).
+- `resolve_client_arg` raises a typed `APIError` instead of a bare
+  `KeyError` when a resolved client record lacks `client_id`.

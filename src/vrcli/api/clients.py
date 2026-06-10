@@ -4,10 +4,16 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from typing import Any
+from urllib.parse import quote
 
-from ..errors import NotFoundError, UsageError
+from ..errors import APIError, NotFoundError, UsageError
 from ..pagination import DEFAULT_PAGE_BUDGET, paginate
 from ..transport import VRTransport
+
+
+def _seg(value: str) -> str:
+    """URL-encode a user-supplied path segment (matches the other api modules)."""
+    return quote(value, safe="")
 
 
 def list_clients(
@@ -62,7 +68,7 @@ def iter_clients(
 
 def get_client(transport: VRTransport, client_id: str) -> Any:
     """GET /clients/{clientId}"""
-    return transport.request("GET", f"/clients/{client_id}")
+    return transport.request("GET", f"/clients/{_seg(client_id)}")
 
 
 def update_client_metadata(
@@ -82,12 +88,12 @@ def update_client_metadata(
         body["add"] = add
     if remove:
         body["remove"] = remove
-    return transport.request("PUT", f"/clients/{client_id}", json_body=body)
+    return transport.request("PUT", f"/clients/{_seg(client_id)}", json_body=body)
 
 
 def delete_client(transport: VRTransport, client_id: str) -> Any:
     """DELETE /clients/{clientId}"""
-    return transport.request("DELETE", f"/clients/{client_id}")
+    return transport.request("DELETE", f"/clients/{_seg(client_id)}")
 
 
 # -- hostname resolution (PLAN.md §4.1 conventions) -------------------------
@@ -129,8 +135,11 @@ def resolve_client_arg(transport: VRTransport, value: str, *, first: bool = Fals
     `C.xxxx` is used as-is; a `host:` prefix forces hostname resolution;
     anything else is auto-resolved as a hostname.
     """
-    if value.startswith(_HOST_PREFIX):
-        return resolve_hostname(transport, value[len(_HOST_PREFIX):], first=first)["client_id"]
     if value.startswith(_CLIENT_ID_PREFIX):
         return value
-    return resolve_hostname(transport, value, first=first)["client_id"]
+    hostname = value[len(_HOST_PREFIX):] if value.startswith(_HOST_PREFIX) else value
+    record = resolve_hostname(transport, hostname, first=first)
+    client_id = record.get("client_id")
+    if not client_id:
+        raise APIError(f"Resolved client record for {hostname!r} has no client_id", detail=record)
+    return client_id

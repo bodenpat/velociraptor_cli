@@ -93,11 +93,42 @@ def test_audit_appends(tmp_path, monkeypatch):
 
 
 def test_audit_redacts_key_in_argv(tmp_path, monkeypatch):
+    """Source-independent: redaction reads the live secret registry the
+    transport populates, so it works whether the key came from R7_VR_API_KEY
+    or R7_VR_API_KEY_FILE. Here we register the secret directly (what
+    VRTransport does on construction)."""
+    from vrcli.transport import register_secret
+
     key = "99999999-8888-7777-6666-555555555555"
-    monkeypatch.setenv("R7_VR_API_KEY", key)
+    register_secret(key)  # simulates a VRTransport having been built this run
     monkeypatch.setattr("sys.argv", ["vr", "ops", "triage", f"--oops={key}"])
     record = write_audit("ops triage", out_dir=tmp_path)
     assert key not in json.dumps(record)
+    assert key not in (tmp_path / "audit.jsonl").read_text()
+
+
+def test_audit_redacts_key_from_key_file_source(tmp_path, monkeypatch):
+    """Regression for the R7_VR_API_KEY_FILE gap: the key never lands in
+    R7_VR_API_KEY, yet a transport built from the file registers it, so the
+    audit writer still scrubs it from argv (evidence dir AND central log)."""
+    from vrcli.config import Config, Secret
+    from vrcli.transport import VRTransport
+
+    key = "77777777-6666-5555-4444-333333333333"
+    key_file = tmp_path / "key"
+    key_file.write_text(key)
+    key_file.chmod(0o600)
+    monkeypatch.delenv("R7_VR_API_KEY", raising=False)
+    central = tmp_path / "central.jsonl"
+    monkeypatch.setenv("R7_VR_AUDIT_LOG", str(central))
+    monkeypatch.setattr("sys.argv", ["vr", "ops", "contain", f"--oops={key}"])
+
+    # Building the transport is what registers the file-sourced key.
+    with VRTransport(Config(api_key=Secret(key), region="us", org_id="x")):
+        write_audit("ops contain", out_dir=tmp_path / "case")
+
+    assert key not in (tmp_path / "case" / "audit.jsonl").read_text()
+    assert key not in central.read_text()
 
 
 # -- wait --------------------------------------------------------------------
