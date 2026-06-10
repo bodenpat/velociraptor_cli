@@ -1,0 +1,1762 @@
+openapi: 3.1.0
+info:
+  title: Hosted Velociraptor REST API
+  version: v0
+  description: The Velociraptor API allows you to manage clients, hunts, flows, labels, and artifacts in your Rapid7 environment. You can use the API to automate endpoint collection workflows, retrieve forensic data, manage labels, and administer Velociraptor artifacts programmatically.
+servers:
+  - url: https://{region}.api.insight.rapid7.com/insight-velociraptor/v1/orgs/{orgId}
+    description: Velociraptor Org URL
+    variables:
+      region:
+        default: ''
+      orgId:
+        default: ''
+security:
+  - ApiKeyAuth: []
+tags:
+  - name: Label API
+    description: Manage client labels.
+  - name: Hunt API
+    description: Create and manage hunts across multiple clients.
+  - name: Flow API
+    description: Create and manage targeted collections for specific clients.
+  - name: Client API
+    description: Retrieve and manage client information.
+  - name: Artifact API
+    description: Retrieve and manage Velociraptor artifacts.
+paths:
+  /clients/{clientId}:
+    get:
+      tags:
+        - Client API
+      summary: Get a client
+      operationId: getClient
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves information for a specific client.
+    put:
+      tags:
+        - Client API
+      summary: Update client metadata
+      operationId: updateClientMetadata
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClientMetadataRequest'
+        required: true
+      responses:
+        '204':
+          description: No content
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Updates metadata associated with a client.
+    delete:
+      tags:
+        - Client API
+      summary: Delete a client
+      operationId: deleteClient
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No content
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Deletes a client from the organization.
+  /hunts:
+    get:
+      tags:
+        - Hunt API
+      summary: List hunts
+      operationId: getHunts
+      parameters:
+        - name: state
+          in: query
+          description: Filter by hunt state.
+          required: false
+          schema:
+            type: string
+            enum:
+              - UNSET
+              - PAUSED
+              - RUNNING
+              - STOPPED
+              - ARCHIVED
+              - DELETED
+        - name: sort
+          in: query
+          description: Sort order for results. Valid values are `NEWEST` and `OLDEST`.
+          required: false
+          schema:
+            type: string
+            default: NEWEST
+            enum:
+              - OLDEST
+              - NEWEST
+        - name: limit
+          in: query
+          description: Maximum number of results to return.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 10000
+        - name: cursor
+          in: query
+          description: Pagination cursor from a previous response.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves hunts for the organization.
+    post:
+      tags:
+        - Hunt API
+      summary: Create a hunt
+      operationId: createHunt
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Hunt'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Creates a new hunt.
+  /clients/{clientId}/flows:
+    get:
+      tags:
+        - Flow API
+      summary: List flows for a client
+      operationId: getClientFlows
+      parameters:
+        - name: creator
+          in: query
+          description: Filter by creator username.
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort order for results.
+          required: false
+          schema:
+            type: string
+            default: NEWEST
+            enum:
+              - OLDEST
+              - NEWEST
+        - name: limit
+          in: query
+          description: Maximum number of results to return.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 10000
+        - name: cursor
+          in: query
+          description: Pagination cursor from a previous response.
+          required: false
+          schema:
+            type: string
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageArtifactCollectorContextMain'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves flows associated with a client.
+    post:
+      tags:
+        - Flow API
+      summary: Create a flow
+      operationId: createFlow
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArtifactCollectorArgs'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Creates a flow for a client.
+  /clients/bulk-labels:
+    post:
+      tags:
+        - Label API
+      summary: Bulk add labels to clients
+      operationId: bulkAddLabels
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkLabelRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Adds labels to multiple clients simultaneously.
+  /artifacts:
+    get:
+      tags:
+        - Artifact API
+      summary: List Artifacts
+      operationId: listArtifacts
+      parameters:
+        - name: type
+          in: query
+          description: Filter by artifact type.
+          required: false
+          schema:
+            type: string
+            default: ALL
+            enum:
+              - ALL
+              - CLIENT
+              - CLIENT_EVENT
+              - SERVER
+              - SERVER_EVENT
+              - NOTEBOOK
+        - name: os
+          in: query
+          description: Filter by operating system.
+          required: false
+          schema:
+            type: string
+            default: ALL
+            enum:
+              - ALL
+              - LINUX
+              - WINDOWS
+              - DARWIN
+        - name: includeBuiltIn
+          in: query
+          description: Include built-in artifacts.
+          required: false
+          schema:
+            type: boolean
+            default: true
+        - name: includeCustom
+          in: query
+          description: Include custom artifacts.
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArtifactListing'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves available artifacts.
+    post:
+      tags:
+        - Artifact API
+      summary: Add a new Artifact
+      operationId: addArtifact
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Artifact'
+          application/yaml:
+            schema:
+              $ref: '#/components/schemas/Artifact'
+        required: true
+      responses:
+        '204':
+          description: No content
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Creates a new artifact definition.
+  /hunts/{huntId}:
+    get:
+      tags:
+        - Hunt API
+      summary: Get hunt details
+      operationId: getHunt
+      parameters:
+        - name: huntId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Hunt not found
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves details for a specific hunt.
+    patch:
+      tags:
+        - Hunt API
+      summary: Update hunt status
+      operationId: updateHuntStatus
+      parameters:
+        - name: desiredState
+          in: query
+          description: Desired hunt state.
+          required: false
+          schema:
+            type: string
+            default: RUNNING
+            enum:
+              - UNSET
+              - PAUSED
+              - RUNNING
+              - STOPPED
+              - ARCHIVED
+              - DELETED
+        - name: huntId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No content
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Hunt not found
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Updates the state of a hunt.
+  /clients/{clientId}/labels/{label}:
+    delete:
+      tags:
+        - Label API
+      summary: Remove a label from a client
+      operationId: deleteLabel
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: label
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No content
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Removes a label from a client.
+    patch:
+      tags:
+        - Label API
+      summary: Add a label to a client
+      operationId: addLabel
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: label
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Adds a label to a client.
+  /artifacts/{name}:
+    get:
+      tags:
+        - Artifact API
+      summary: Get a target Artifact definition
+      operationId: getArtifact
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+            application/yaml:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Artifact not found
+          content:
+            application/json:
+              schema:
+                type: string
+            application/yaml:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves an artifact definition.
+    delete:
+      tags:
+        - Artifact API
+      summary: Remove an Artifact
+      operationId: deleteArtifact
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No content
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Deletes an artifact definition.
+    patch:
+      tags:
+        - Artifact API
+      summary: Modify an existing Artifact definition
+      operationId: modifyArtifact
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Artifact'
+          application/yaml:
+            schema:
+              $ref: '#/components/schemas/Artifact'
+        required: true
+      responses:
+        '204':
+          description: No content
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Updates an existing artifact definition.
+  /hunts/{huntId}/results:
+    get:
+      tags:
+        - Hunt API
+      summary: Get hunt results
+      operationId: getHuntResults
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 10000
+        - name: cursor
+          in: query
+          description: Pagination cursor from a previous response.
+          required: false
+          schema:
+            type: string
+        - name: huntId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves results generated by a hunt.
+  /hunts/{huntId}/errors:
+    get:
+      tags:
+        - Hunt API
+      summary: Get hunt errors
+      operationId: getHuntErrors
+      parameters:
+        - name: huntId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HuntErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves errors generated during hunt execution.
+  /clients:
+    get:
+      tags:
+        - Client API
+      summary: List clients
+      operationId: getClients
+      parameters:
+        - name: limit
+          in: query
+          description: 'Maximum number of results to return. Default: `10000`.'
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 10000
+        - name: hostname
+          in: query
+          description: Filter clients by hostname substring.
+          required: false
+          schema:
+            type: string
+        - name: os
+          in: query
+          description: Filter clients by operating system.
+          required: false
+          schema:
+            type: string
+        - name: label
+          in: query
+          description: Filter clients by label.
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filter clients by online status. Valid values are `ALL`, `ONLINE`, and `OFFLINE`.
+          required: false
+          schema:
+            type: string
+            default: ALL
+            enum:
+              - ALL
+              - ONLINE
+              - OFFLINE
+        - name: cursor
+          in: query
+          description: Pagination cursor from a previous response.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves clients in your organization.
+  /clients/{clientId}/labels:
+    get:
+      tags:
+        - Label API
+      summary: List labels for a client
+      operationId: getLabels
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Client labels not found
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves labels assigned to a client.
+  /clients/{clientId}/flows/{flowId}:
+    get:
+      tags:
+        - Flow API
+      summary: Get a flow
+      operationId: getClientFlow
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Flow not found
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves details for a specific flow.
+  /clients/{clientId}/flows/{flowId}/results:
+    get:
+      tags:
+        - Flow API
+      summary: List available flow results
+      operationId: getAvailableFlowResults
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves available result artifacts for a flow.
+  /clients/{clientId}/flows/{flowId}/results/{artifact}:
+    get:
+      tags:
+        - Flow API
+      summary: Get flow results
+      operationId: getFlowResults
+      parameters:
+        - name: cursor
+          in: query
+          description: Pagination cursor from a previous response.
+          required: false
+          schema:
+            type: string
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: artifact
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves flow result data for a specific artifact.
+  /clients/{clientId}/flows/{flowId}/results/{artifact}/{source}:
+    get:
+      tags:
+        - Flow API
+      summary: Get flow results
+      operationId: getFlowResults_1
+      parameters:
+        - name: cursor
+          in: query
+          description: Pagination cursor from a previous response.
+          required: false
+          schema:
+            type: string
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: artifact
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: source
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves flow result data for a specific artifact source.
+  /clients/{clientId}/flows/{flowId}/logs:
+    get:
+      tags:
+        - Flow API
+      summary: Get flow logs
+      operationId: getFlowLogs
+      parameters:
+        - name: cursor
+          in: query
+          description: Pagination cursor from a previous response.
+          required: false
+          schema:
+            type: string
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: flowId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+      description: Retrieves execution logs for a flow.
+components:
+  schemas:
+    JsonNode: {}
+    UpdateClientMetadataRequest:
+      type: object
+      properties:
+        add:
+          $ref: '#/components/schemas/JsonNode'
+        remove:
+          $ref: '#/components/schemas/JsonNode'
+    Artifact:
+      type: object
+      required:
+        - name
+        - sources
+      properties:
+        name:
+          type: string
+        aliases:
+          type: array
+          items:
+            type: string
+        type:
+          type: string
+          enum:
+            - CLIENT
+            - CLIENT_EVENT
+            - SERVER
+            - SERVER_EVENT
+            - NOTEBOOK
+            - INTERNAL
+        description:
+          type: string
+        author:
+          type: string
+        reference:
+          type: array
+          items:
+            type: string
+        references:
+          type: array
+          items:
+            type: string
+        required_permissions:
+          type: array
+          items:
+            type: string
+        implied_permissions:
+          type: array
+          items:
+            type: string
+        impersonate:
+          type: string
+        resources:
+          $ref: '#/components/schemas/ArtifactResources'
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtifactTool'
+        precondition:
+          type: string
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtifactParameter'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtifactSource'
+        imports:
+          type: array
+          items:
+            type: string
+        export:
+          type: string
+        reports:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtifactReport'
+        column_types:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtifactColumnType'
+    ArtifactCollectorArgs:
+      type: object
+      required:
+        - artifacts
+        - specs
+      properties:
+        urgent:
+          type: boolean
+        artifacts:
+          type: array
+          items:
+            type: string
+        specs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtifactSpec'
+        cpu_limit:
+          type: number
+          format: float
+        iops_limit:
+          type: number
+          format: float
+        progress_timeout:
+          type: number
+          format: float
+        timeout:
+          type: integer
+          format: int64
+        max_rows:
+          type: integer
+          format: int64
+        max_logs:
+          type: integer
+          format: int64
+        max_upload_bytes:
+          type: integer
+          format: int64
+        trace_freq_sec:
+          type: integer
+          format: int64
+        ops_per_second:
+          type: number
+          format: float
+        log_batch_time:
+          type: integer
+          format: int64
+        allow_custom_overrides:
+          type: boolean
+        compiled_collector_args:
+          type: array
+    ArtifactColumnType:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+    ArtifactEnv:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+    ArtifactNotebookSourceCell:
+      type: object
+      properties:
+        template:
+          type: string
+        type:
+          type: string
+        name:
+          type: string
+        output:
+          type: string
+        env:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtifactEnv'
+    ArtifactParameter:
+      type: object
+      properties:
+        name:
+          type: string
+        default:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+        choices:
+          type: array
+          items:
+            type: string
+        friendly_name:
+          type: string
+        validating_regex:
+          type: string
+        artifact_type:
+          type: string
+        sources:
+          type: boolean
+    ArtifactParameters:
+      type: object
+      properties:
+        env:
+          type: array
+    ArtifactReport:
+      type: object
+      properties:
+        type:
+          type: string
+        timeout:
+          type: integer
+          format: int64
+        name:
+          type: string
+        template:
+          type: string
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtifactParameter'
+    ArtifactResources:
+      type: object
+      description: You can define default resource limits directly within the artifact’s YAML definition using the resources section. This allows tailoring resource control per artifact. These defaults are then populated in the GUI when a collection is created.
+      properties:
+        timeout:
+          type: integer
+          format: int64
+        ops_per_second:
+          type: number
+          format: float
+        cpu_limit:
+          type: number
+          format: float
+        iops_limit:
+          type: number
+          format: float
+        max_rows:
+          type: integer
+          format: int64
+        max_upload_bytes:
+          type: integer
+          format: int64
+        max_batch_wait:
+          type: integer
+          format: int64
+        max_batch_rows:
+          type: integer
+          format: int64
+        max_batch_rows_buffer:
+          type: integer
+          format: int64
+    ArtifactSource:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        precondition:
+          type: string
+        query:
+          type: string
+        queries:
+          type: array
+          deprecated: true
+          items:
+            type: string
+            deprecated: true
+        notebook:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtifactNotebookSourceCell'
+    ArtifactSpec:
+      type: object
+      properties:
+        artifact:
+          type: string
+        parameters:
+          $ref: '#/components/schemas/ArtifactParameters'
+        cpu_limit:
+          type: number
+          format: float
+        max_batch_wait:
+          type: integer
+          format: int64
+        max_batch_rows:
+          type: integer
+          format: int64
+        max_batch_rows_buffer:
+          type: integer
+          format: int64
+    ArtifactTool:
+      type: object
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+        github_project:
+          type: string
+        github_asset_regex:
+          type: string
+        serve_locally:
+          type: boolean
+        admin_override:
+          type: boolean
+        expected_hash:
+          type: string
+        version:
+          type: string
+        materialize:
+          type: boolean
+        artifact:
+          type: string
+        filestore_path:
+          type: string
+        serve_url:
+          type: string
+        serve_urls:
+          type: array
+          items:
+            type: string
+        serve_path:
+          type: string
+        filename:
+          type: string
+        hash:
+          type: string
+        invalid_hash:
+          type: string
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtifactTool'
+    AvailableDownloadFile:
+      type: object
+      properties:
+        name:
+          type: string
+        path:
+          type: string
+        stats:
+          $ref: '#/components/schemas/ContainerStats'
+    AvailableDownloads:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailableDownloadFile'
+    ContainerMemberStats:
+      type: object
+      properties:
+        name:
+          type: string
+        uncompressed_size:
+          type: integer
+          format: int64
+        compressed_size:
+          type: integer
+          format: int64
+    ContainerStats:
+      type: object
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+        total_uploaded_files:
+          type: integer
+          format: int64
+        total_uploaded_bytes:
+          type: integer
+          format: int64
+        total_uncompressed_bytes:
+          type: integer
+          format: int64
+        total_compressed_bytes:
+          type: integer
+          format: int64
+        total_container_files:
+          type: integer
+          format: int64
+        hash:
+          type: string
+        total_duration:
+          type: integer
+          format: int64
+        components:
+          type: array
+          items:
+            type: string
+        type:
+          type: string
+        error:
+          type: string
+        vfs_path:
+          type: string
+        active_members:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContainerMemberStats'
+    Hunt:
+      type: object
+      properties:
+        expires:
+          type: integer
+          format: int64
+        hunt_description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        start_request:
+          $ref: '#/components/schemas/ArtifactCollectorArgs'
+        condition:
+          $ref: '#/components/schemas/HuntCondition'
+        client_limit:
+          type: integer
+          format: int64
+    HuntCondition:
+      type: object
+      properties:
+        excluded_labels:
+          $ref: '#/components/schemas/HuntLabelCondition'
+        labels:
+          $ref: '#/components/schemas/HuntLabelCondition'
+        os:
+          $ref: '#/components/schemas/HuntOsCondition'
+    HuntLabelCondition:
+      type: object
+      properties:
+        label:
+          type: array
+          items:
+            type: string
+    HuntOsCondition:
+      type: object
+      properties:
+        os:
+          type: string
+          enum:
+            - ALL
+            - WINDOWS
+            - LINUX
+            - OSX
+    HuntStats:
+      type: object
+      properties:
+        total_clients_scheduled:
+          type: integer
+          format: int64
+        total_clients_with_results:
+          type: integer
+          format: int64
+        total_clients_without_results:
+          type: integer
+          format: int64
+        total_clients_with_errors:
+          type: integer
+          format: int64
+        stopped:
+          type: boolean
+        available_downloads:
+          $ref: '#/components/schemas/AvailableDownloads'
+    BulkLabelRequest:
+      type: object
+      properties:
+        client_ids:
+          type: array
+          items:
+            type: string
+        label:
+          type: string
+    HuntError:
+      type: object
+      properties:
+        artifact:
+          type: string
+        error_message:
+          type: string
+    HuntErrorResponse:
+      type: object
+      properties:
+        client_id:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/HuntError'
+    PageArtifactCollectorContextMain:
+      type: object
+      properties:
+        size:
+          type: integer
+          format: int32
+        cursor:
+          type: string
+        data:
+          type: array
+    ArtifactListing:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum:
+            - CLIENT
+            - CLIENT_EVENT
+            - SERVER
+            - SERVER_EVENT
+            - NOTEBOOK
+            - INTERNAL
+        built_in:
+          type: boolean
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: The Velociraptor API uses API key authentication. Include your API key in requests using the configured authentication header for your organization.
