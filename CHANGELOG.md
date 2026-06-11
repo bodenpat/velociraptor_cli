@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-06-11
+
+First tagged release. Implements PLAN.md Phases 0–3: the full library + `vr`
+CLI with 1:1 coverage of all 26 REST operations and the six `vr ops`
+investigation composites. 341 tests; pre-commit hooks are the CI.
+
 ### Added
 
 - Phase 0: repo scaffolding, pre-commit security baseline (gitleaks,
@@ -22,7 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   manifests, audit JSONL, `--wait`/`--start`/`--check`, `--dry-run` on
   every mutating command, and quarantine guardrails.
 - Documentation: auto-generated CLI reference, API coverage map, SOAR
-  playbooks, installation/configuration/security guides.
+  playbooks, installation/configuration/security guides, architecture and
+  development guides, and a docs index.
 
 ### Fixed (adversarial review pass)
 
@@ -41,3 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   SHA-256 manifest (chain-of-custody now covers the audit record itself).
 - `resolve_client_arg` raises a typed `APIError` instead of a bare
   `KeyError` when a resolved client record lacks `client_id`.
+
+[Unreleased]: https://github.com/bodenpat/velociraptor_cli/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/bodenpat/velociraptor_cli/releases/tag/v0.1.0
