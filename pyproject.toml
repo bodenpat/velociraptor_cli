@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vrcli"
-version = "0.1.1"
+version = "0.1.2"
 description = "Library + CLI for the Rapid7-hosted Velociraptor REST API (InsightConnect SOAR automation and analyst use)"
 readme = "README.md"
 requires-python = ">=3.10"

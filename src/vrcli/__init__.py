@@ -1,4 +1,4 @@
 """vrcli — library + CLI for the Rapid7-hosted Velociraptor REST API."""
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 USER_AGENT = f"vrcli/{__version__}"
