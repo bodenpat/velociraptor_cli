@@ -311,13 +311,20 @@ Releases are git tags (the SOAR orchestrator pins a tested tag and never
 tracks the default branch — see [installation.md](installation.md)). To cut
 one:
 
-1. Bump `version` in `pyproject.toml` (currently `0.1.0`) following SemVer.
+1. Bump the version in **both** places — they must match (CI / `vr --version`
+   read the second one): `version` in `pyproject.toml` and `__version__` in
+   `src/vrcli/__init__.py`. Follow SemVer.
 2. Move the `## [Unreleased]` notes in `CHANGELOG.md` under a new dated
-   version heading (the file follows Keep a Changelog + SemVer).
-3. Run the release gate: `python3 -m pytest`, `pre-commit run --all-files`,
+   version heading and refresh the compare links at the bottom (the file
+   follows Keep a Changelog + SemVer).
+3. **Regenerate the CLI reference** — `python3 scripts/gen_cli_docs.py`. Its
+   header embeds `__version__`, so a version bump makes it stale and the
+   `cli-docs-fresh` hook will block the commit until you regenerate.
+4. Run the release gate: `python3 -m pytest`, `pre-commit run --all-files`,
    and `python3 scripts/check_spec_drift.py` (PLAN.md §6 requires the
    drift check before release).
-4. Tag the release and push the tag.
+5. Commit, then tag the release (`git tag -a vX.Y.Z`) and push both `main`
+   and the tag.
 
 ---
 
