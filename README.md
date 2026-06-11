@@ -133,6 +133,8 @@ for the four v1 use cases are in
 ```
 velociraptor_cli/
 ├── README.md            ← you are here
+├── LICENSE              Apache License 2.0
+├── NOTICE               copyright + attribution
 ├── PLAN.md              project plan, decisions, phases, open questions
 ├── TODO.md              what's left to do
 ├── SECURITY.md          secret handling, key rotation, exposure response
@@ -185,3 +187,13 @@ Project-level documents at the repo root:
 - [TODO.md](TODO.md) — remaining phases, the Phase-3 tenant verifications,
   and external dependencies
 - [CHANGELOG.md](CHANGELOG.md) — release history (Keep a Changelog + SemVer)
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+`vrcli` is an independent REST API client. It contains no Velociraptor source
+code and is not a derivative work of Velociraptor (which is licensed
+AGPL-3.0); it only speaks to the Rapid7-hosted Velociraptor REST API over
+HTTP. The OpenAPI specification vendored under `spec/` is Rapid7's API
+documentation.

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **License: Apache-2.0.** Added `LICENSE` (verbatim Apache License 2.0) and
+  `NOTICE`; `pyproject.toml` now declares `Apache-2.0` with the matching
+  classifier. The project is now open source. `vrcli` includes no
+  Velociraptor source and is not a derivative of it (Velociraptor is
+  AGPL-3.0) — it is an independent client of the Rapid7-hosted REST API, so
+  it is not bound by AGPL.
+
 ## [0.1.1] - 2026-06-11
 
 ### Added
