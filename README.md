@@ -172,6 +172,9 @@ Everything detailed lives under [`docs/`](docs/) — start at the
 - [docs/development.md](docs/development.md) — contributor guide: dev setup,
   tests, the pre-commit hooks (the CI), generated docs, spec-drift checking,
   and adding a new endpoint
+- [docs/phase-plans/](docs/phase-plans/README.md) — execute-level plans for
+  the remaining Phase 4 (SOAR rollout) and Phase 5 (native plugin) work,
+  tagged `[agent]` / `[tenant]` / `[human]` with per-task acceptance gates
 
 Project-level documents at the repo root:
 

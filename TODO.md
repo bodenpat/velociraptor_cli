@@ -27,7 +27,13 @@ work, grouped by what blocks them.
 
 ## Remaining phases (need the live tenant, not just code)
 
-### Phase 4 — SOAR rollout & playbooks
+> **Detailed pick-up-and-execute plans:**
+> [docs/phase-plans/phase-4.md](docs/phase-plans/phase-4.md) and
+> [docs/phase-plans/phase-5.md](docs/phase-plans/phase-5.md) — ordered tasks
+> with `[agent]` / `[tenant]` / `[human]` tags and per-task acceptance gates.
+> The summaries below are the index; the plans are the execution detail.
+
+### Phase 4 — SOAR rollout & playbooks ([plan](docs/phase-plans/phase-4.md))
 - [ ] Stand up the four v1 InsightConnect workflows on the orchestrator host
       using the CLI: triage-on-alert, IOC sweep, contain-on-detection,
       enrichment (recipes drafted in [docs/soar-playbooks.md](docs/soar-playbooks.md)).
@@ -47,11 +53,12 @@ work, grouped by what blocks them.
       any GUI fallback falsifies the rows-only evidence model and escalates
       the file-download ticket below to blocking. Assign a named owner.
 
-### Phase 5 — Native InsightConnect plugin (future)
+### Phase 5 — Native InsightConnect plugin (future) ([plan](docs/phase-plans/phase-5.md))
 - [ ] Wrap the `vrcli` library actions in Rapid7's `insight-plugin` SDK (the
-      library/CLI split makes this a thin adapter). Only pursue if the SOAR
-      exec path from Phase 4 proves insufficient; the CLI stays valuable for
-      WSL analysts regardless.
+      library/CLI split makes this a thin adapter — the plugin builds a
+      `VRTransport` from connection inputs and delegates to the existing
+      `ops`/`api` functions). Only pursue if the SOAR exec path from Phase 4
+      proves insufficient; the CLI stays valuable for WSL analysts regardless.
 
 ---
 

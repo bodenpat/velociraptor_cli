@@ -30,6 +30,14 @@ Documentation for `vrcli` / the `vr` CLI. Start at the top-level
   their `vr` commands, the composite→primitive orchestration map, and the
   known file-download gap.
 
+## Forward plans
+
+- **[phase-plans/](phase-plans/README.md)** — pick-up-and-execute plans for
+  the remaining work: **[Phase 4](phase-plans/phase-4.md)** (SOAR rollout) and
+  **[Phase 5](phase-plans/phase-5.md)** (native InsightConnect plugin), with
+  `[agent]` / `[tenant]` / `[human]` tags and per-task acceptance gates.
+  Phases 0–3 are done and documented as-built.
+
 ## Project-level documents (repo root)
 
 - **[../README.md](../README.md)** — overview, install, 5-minute quickstart.
